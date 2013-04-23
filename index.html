@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=320" />
+	<title>Player</title>
+</head>
+<body>
+
+<script type="text/javascript">
+var context = new webkitAudioContext();
+
+var makeFilter = function(inputNode, type, frequency, Q, order) {
+	var lastNode = inputNode;
+
+	for (var i = 0; i < order; i++) {
+		var filter = context.createBiquadFilter();
+		filter.type = type;
+		filter.frequency.value = frequency;
+		filter.Q.value = Q;
+		lastNode.connect(filter);
+		lastNode = filter;
+	}
+
+	return lastNode;
+};
+
+var soundSource = context.createBufferSource();
+var noiseSource = context.createBufferSource();
+
+var soundNode = makeFilter(soundSource, 2, 1400, 1, 8);
+
+var soundVolume = context.createGainNode();
+soundVolume.gain.value = 1;
+soundNode.connect(soundVolume);
+
+var noiseNode = makeFilter(noiseSource, 6, 1400, 1, 8);
+
+var analyser = context.createAnalyser();
+analyser.smoothingTimeConstant.value = 1;
+
+soundVolume.connect(analyser);
+noiseNode.connect(analyser);
+
+var oscillators = [];
+
+for (var i = 0; i < 10; i++) {
+	var osc = context.createOscillator();
+	osc.frequency.value = 600 + 200*i;
+	osc.connect(analyser);
+	oscillators.push(osc);
+}
+
+/*
+var m = 4000;
+var filterBuffer = context.createBuffer(1, m, soundBuffer.sampleRate);
+
+var audioData = filterBuffer.getChannelData(0);
+
+audioData[0] = 1;
+audioData[m/4] = 1;
+audioData[2*m/4] = 1;
+audioData[3*m/4] = 1;
+audioData[m-1] = 1;
+
+var conv = context.createConvolver();
+conv.normalize = false;
+conv.buffer = filterBuffer;
+*/
+
+var lastFilter = analyser;
+
+oscillators.forEach(function(osc) {
+	lastFilter = makeFilter(lastFilter, 6, osc.frequency.value, 500, 1);
+});
+
+lastFilter = makeFilter(lastFilter, 2, 1400, 1, 8);
+
+var postAnalyser = context.createAnalyser();
+lastFilter.connect(postAnalyser);
+
+var volume = context.createGainNode();
+volume.gain.value = 1;
+
+postAnalyser.connect(volume);
+volume.connect(context.destination);
+
+var drawSpectrum = function() {
+	var canvas = document.querySelector('canvas');
+	var ctx = canvas.getContext('2d');
+	var width = canvas.width;
+	var height = canvas.height;
+	var bar_width = 1;
+
+	ctx.clearRect(0, 0, width, height);
+
+	var freqByteData = new Uint8Array(postAnalyser.frequencyBinCount);
+	postAnalyser.getByteFrequencyData(freqByteData);
+
+	var barCount = Math.round(width / bar_width);
+	for (var i = 0; i < barCount; i++) {
+		var magnitude = freqByteData[i];
+		// some values need adjusting to fit on the canvas
+		ctx.fillRect(bar_width * i, height, bar_width - 2, -magnitude + 60);
+	}
+}
+
+var playSound = function() {
+	soundSource.noteOn(3);
+	noiseSource.noteOn(0);
+	noiseSource.noteOff(soundSource.buffer.duration + 4);
+	oscillators.forEach(function(osc) {
+		osc.noteOn(0);
+		osc.noteOff(soundSource.buffer.duration + 4);
+	});
+
+	setInterval(drawSpectrum, 30);
+};
+
+var loadSound = function(url, callback) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.responseType = 'arraybuffer';
+
+  // Decode asynchronously
+  request.onload = function() {
+    context.decodeAudioData(request.response, callback);
+  }
+  request.send();
+};
+
+loadSound('atlys.mp3', function (buffer) {
+  soundSource.buffer = buffer;
+});
+
+loadSound('noise.mp3', function (buffer) {
+  noiseSource.buffer = buffer;
+});
+
+window.addEventListener('load', function(e) {
+	document.querySelector('#play-button').addEventListener('click', playSound);
+}, false);
+</script>
+
+<div id="play-button" style="background: #ddd; padding: 5px; border: 1px solid #aaa;">Play</div>
+
+<canvas width="600" height="300"></canvas>
+
+</body>
+</html>
