@@ -28,13 +28,13 @@ var makeFilter = function(inputNode, type, frequency, Q, order) {
 var soundSource = context.createBufferSource();
 var noiseSource = context.createBufferSource();
 
-var soundNode = makeFilter(soundSource, 2, 1400, 1, 8);
+var soundNode = makeFilter(soundSource, 2, 1500, 1, 8);
 
 var soundVolume = context.createGainNode();
 soundVolume.gain.value = 1;
 soundNode.connect(soundVolume);
 
-var noiseNode = makeFilter(noiseSource, 6, 1400, 1, 8);
+var noiseNode = makeFilter(noiseSource, 6, 1500, 1, 8);
 
 var analyser = context.createAnalyser();
 analyser.smoothingTimeConstant.value = 1;
@@ -74,7 +74,7 @@ oscillators.forEach(function(osc) {
 	lastFilter = makeFilter(lastFilter, 6, osc.frequency.value, 500, 1);
 });
 
-lastFilter = makeFilter(lastFilter, 2, 1400, 1, 8);
+lastFilter = makeFilter(lastFilter, 2, 1500, 1, 8);
 
 var postAnalyser = context.createAnalyser();
 lastFilter.connect(postAnalyser);
