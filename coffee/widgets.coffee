@@ -1,0 +1,2 @@
+class DragHandle
+  constructor: (url) ->
