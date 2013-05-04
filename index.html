@@ -77,6 +77,7 @@ oscillators.forEach(function(osc) {
 lastFilter = makeFilter(lastFilter, 2, 1500, 1, 8);
 
 var postAnalyser = context.createAnalyser();
+postAnalyser.smoothingTimeConstant.value = 100;
 lastFilter.connect(postAnalyser);
 
 var volume = context.createGainNode();
@@ -85,24 +86,29 @@ volume.gain.value = 1;
 postAnalyser.connect(volume);
 volume.connect(context.destination);
 
+var mouseX = 0;
+var mouseY = 0;
+
 var drawSpectrum = function() {
 	var canvas = document.querySelector('canvas');
 	var ctx = canvas.getContext('2d');
 	var width = canvas.width;
 	var height = canvas.height;
-	var bar_width = 1;
 
 	ctx.clearRect(0, 0, width, height);
+	ctx.fillStyle = "#47ACF5";
 
 	var freqByteData = new Uint8Array(postAnalyser.frequencyBinCount);
 	postAnalyser.getByteFrequencyData(freqByteData);
 
-	var barCount = Math.round(width / bar_width);
-	for (var i = 0; i < barCount; i++) {
+	for (var i = 0; i < width; i++) {
 		var magnitude = freqByteData[i];
 		// some values need adjusting to fit on the canvas
-		ctx.fillRect(bar_width * i, height, bar_width - 2, -magnitude + 60);
+		ctx.fillRect(i, height, 1, -magnitude);
 	}
+
+	ctx.font = "10px Verdana";
+	ctx.fillText("X=" + mouseX + " Y=" + mouseY, 0, 10);
 }
 
 var playSound = function() {
@@ -138,7 +144,12 @@ loadSound('noise.mp3', function (buffer) {
 });
 
 window.addEventListener('load', function(e) {
-	document.querySelector('#play-button').addEventListener('click', playSound);
+	document.querySelector('#play-button').addEventListener('click', playSound, false);
+
+	document.querySelector('canvas').addEventListener('mousemove', function(e) {
+		mouseX = e.pageX - this.offsetLeft;
+		mouseY = e.pageY - this.offsetTop;
+	}, false);
 }, false);
 </script>
 
