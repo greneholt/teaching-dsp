@@ -65,7 +65,7 @@ class root.CanvasManager
   render: ->
     width = @canvas[0].width
     height = @canvas[0].height
-    @ctx.clearRect(0, 0, width, height)
+    @ctx.clearRect 0, 0, width, height
 
     for renderable in @renderables
       renderable.render(@ctx, width, height)
