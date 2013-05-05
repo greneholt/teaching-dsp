@@ -13,7 +13,7 @@ class root.DragHandle
     ctx.fillStyle = "#555555"
     ctx.fillRect(@x, @y, @width, @height)
 
-  mousedown: (x, y) ->
+  grab: (x, y) ->
     if x > @x and x < @x + @width and y > @y and y < @y + @height
       @mouseStartX = x
       @mouseStartY = y
@@ -21,10 +21,12 @@ class root.DragHandle
       @startX = @x
       @startY = @y
 
-  mouseup: (x, y) ->
+      return true
+
+  release: ->
     @dragging = false
 
-  mousemove: (x, y) ->
+  drag: (x, y) ->
     if @dragging
       @x = x - @mouseStartX + @startX
       @y = y - @mouseStartY + @startY

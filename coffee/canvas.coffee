@@ -11,6 +11,4 @@ $(document).ready ->
 
   handle = new DragHandle(canvasManager)
 
-  setInterval ->
-    canvasManager.render()
-  , 30
+  canvasManager.render()

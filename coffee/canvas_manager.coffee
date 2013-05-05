@@ -6,32 +6,53 @@ class root.CanvasManager
     @renderables = []
     @interactives = []
 
-    @mousedown = false
+    @dragging = false
 
     @canvas.mousedown (e) =>
-      [mouseX, mouseY] = this.getPosition(e)
-      @mousedown = true
-      for o in @interactives
-        o.mousedown(mouseX, mouseY)
+      this.grab e
 
     @canvas.mouseup (e) =>
-      [mouseX, mouseY] = this.getPosition(e)
-      @mousedown = false
-      for o in @interactives
-        o.mouseup(mouseX, mouseY)
+      this.release e
 
     # simulate mouseup on mouseout if the mouse was depressed (this fixes dragging glitches)
     @canvas.mouseout (e) =>
-      [mouseX, mouseY] = this.getPosition(e)
-      if @mousedown
-        @mousedown = false
-        for o in @interactives
-          o.mouseup(mouseX, mouseY)
+      this.release e
 
     @canvas.mousemove (e) =>
+      this.drag e
+
+    @canvas.on 'touchstart', (e) =>
+      if this.grab e.originalEvent.touches[0]
+        e.preventDefault()
+
+    @canvas.on 'touchend', (e) =>
+      e.preventDefault() if @dragging
+      this.release e.originalEvent.touches[0]
+
+    @canvas.on 'touchmove', (e) =>
+      e.preventDefault() if @dragging
+      this.drag e.originalEvent.touches[0]
+
+  grab: (e) ->
+    [mouseX, mouseY] = this.getPosition(e)
+    for o in @interactives
+      if o.grab(mouseX, mouseY)
+        @dragging = true
+    return @dragging
+
+  release: (e) ->
+    if @dragging
+      @dragging = false
+      for o in @interactives
+        o.release()
+
+  drag: (e) ->
+    if @dragging
       [mouseX, mouseY] = this.getPosition(e)
       for o in @interactives
-        o.mousemove(mouseX, mouseY)
+        o.drag(mouseX, mouseY)
+
+      this.render()
 
   add: (object, interactive = false) ->
     @renderables.push(object)
