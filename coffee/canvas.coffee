@@ -1,28 +1,16 @@
-toLoad = 1
-
-mouseX = 0
-mouseY = 0
-scene = null
-
 root = exports ? this
 
-handle = new Image();
-handle.src = "play.svg"
-handle.onload = ->
-  toLoad--
-  newLoaded()
+canvasManager = null
 
-newLoaded = ->
-  if toLoad == 0
-    $(document).ready ->
-      canvas = $('canvas')
-      scene = new root.Scene(canvas)
+CanvasManager = root.CanvasManager
+DragHandle = root.DragHandle
 
-      canvas.bind 'mousemove', (e) ->
-        offset = canvas.offset()
-        mouseX = e.pageX - offset.left
-        mouseY = e.pageY - offset.top
+$(document).ready ->
+  canvas = $('canvas')
+  canvasManager = new CanvasManager(canvas)
 
-      setInterval ->
-        scene.render
-      , 30
+  handle = new DragHandle(canvasManager)
+
+  setInterval ->
+    canvasManager.render()
+  , 30
