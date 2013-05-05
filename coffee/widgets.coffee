@@ -8,7 +8,7 @@ class root.DragHandle
   render: (ctx, width, height) ->
     ctx.save()
     ctx.translate @x, @y
-    ctx.fillStyle = "#333333"
+    ctx.fillStyle = "#777777"
     ctx.beginPath()
     ctx.moveTo 0, @height
     ctx.lineTo @width, @height
@@ -41,11 +41,14 @@ class root.SpectrumDisplay
     @analyser = null
 
   render: (ctx, width, height) ->
+    ctx.strokeStyle = "#444444"
+    ctx.lineWidth = 1
+    ctx.strokeRect(@x, @y, @width, @height)
     if @analyser?
-      ctx.fillStyle = "#47ACF5";
 
       freqByteData = new Uint8Array(@analyser.frequencyBinCount)
       @analyser.getByteFrequencyData freqByteData
 
+      ctx.fillStyle = "#47ACF5"
       for i in [0...@width]
         ctx.fillRect @x + i, @y + @height, 1, -freqByteData[i]
