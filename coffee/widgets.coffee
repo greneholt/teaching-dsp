@@ -14,6 +14,7 @@ class root.DragHandle
     ctx.lineTo @width/2, 0
     ctx.closePath()
     ctx.fill()
+    ctx.lineWidth = 1
     ctx.strokeStyle = "#333333"
     ctx.stroke()
     ctx.restore()
@@ -43,7 +44,7 @@ class root.RangeIndicator
 
   render: (ctx, width, heigh) ->
     ctx.fillStyle = @color
-    ctx.globalAlpha = 0.5
+    ctx.globalAlpha = 0.3
     x1 = @handle1.getMarkerX()
     x2 = @handle2.getMarkerX()
 
@@ -58,19 +59,19 @@ class root.LineIndicator
 
   render: (ctx, width, height) ->
     ctx.fillStyle = @color
-    ctx.globalAlpha = 0.5
+    ctx.globalAlpha = 0.3
     x = @handle.getMarkerX()
 
     ctx.fillRect x - 1, @y, 3, @height
     ctx.globalAlpha = 1 # reset alpha
 
 class root.SpectrumDisplay
-  constructor: (@x, @y, @width, @height) ->
+  constructor: (@context, @x, @y, @width, @height) ->
     @analyser = null
 
   render: (ctx, width, height) ->
-    ctx.strokeStyle = "#aaaaaa"
-    ctx.lineWidth = 1
+    ctx.strokeStyle = "#444444"
+    ctx.lineWidth = 2
     ctx.strokeRect @x, @y, @width, @height
     if @analyser?
 
@@ -81,7 +82,7 @@ class root.SpectrumDisplay
       for i in [0...@width]
         ctx.fillRect @x + i, @y + @height, 1, -(freqByteData[i] / 255) * @height
 
-  convertXtoF: (x, Fs) ->
+  convertXtoF: (x) ->
     return null unless @analyser?
 
-    (x - @x) / @analyser.frequencyBinCount * Fs / 2
+    (x - @x) / @analyser.frequencyBinCount * @context.sampleRate / 2

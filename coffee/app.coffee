@@ -29,23 +29,23 @@ $(document).ready ->
 
   mgr = new CanvasManager(canvas)
 
-  specDisplay = new SpectrumDisplay(25, 0, 675, 200)
+  specDisplay = new SpectrumDisplay(context, 25, 1, 675, 200)
   mgr.add specDisplay
 
   handle1 = new DragHandle(100, 250, 50, 50, "#3EA828", {minX: 0, maxX: 675})
   handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 675})
 
-  bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2)
+  bandPassInd = new RangeIndicator(1, 200, "#3EA828", handle1, handle2)
 
   class NotchFilter
     constructor: (@filter) ->
       @handle = new DragHandle(400, 200, 50, 50, "#EB1A1A", {minX: 0, maxX: 675})
-      @indicator = new LineIndicator(0, 200, "#EB1A1A", @handle)
+      @indicator = new LineIndicator(1, 200, "#EB1A1A", @handle)
 
       this.updateFilter()
 
       @onMove = null
-      @handle.onMove =>
+      @handle.onMove = =>
         this.updateFilter()
         @onMove() if @onMove?
 
@@ -58,7 +58,7 @@ $(document).ready ->
       canvasManager.remove @indicator
 
     updateFilter: =>
-      f = specDisplay.convertXtoF @handle.getMarkerX(), context.sampleRate
+      f = specDisplay.convertXtoF @handle.getMarkerX()
       f = Math.round(f/100)*100 # round to nearest 100 Hz
       @filter.frequency.value = f
 
@@ -86,8 +86,8 @@ $(document).ready ->
     if x1 > x2
       [x1, x2] = [x2, x1]
 
-    f1 = specDisplay.convertXtoF x1, context.sampleRate
-    f2 = specDisplay.convertXtoF x2, context.sampleRate
+    f1 = specDisplay.convertXtoF x1
+    f2 = specDisplay.convertXtoF x2
 
     delta = f2 - f1
     freq = (f1 + f2)/2
@@ -130,6 +130,9 @@ $(document).ready ->
     $('.option').click (e) ->
       $(e.target).toggleClass 'enabled'
 
+    $('#volume-slider').change (e) ->
+      pipeline.setVolume Math.pow(10, e.target.value / 100)
+
     $('#show-output-spectrum').click (e) ->
       if $(e.target).is('.enabled')
         specDisplay.analyser = pipeline.postAnalyser
@@ -144,17 +147,17 @@ $(document).ready ->
         mgr.add bandPassInd
         [freq, Q] = calculateBandPass()
         pipeline.bandPass.set 2, 8, freq, Q
-        $('#band-pass-info').css 'visibility', 'visible'
+        $('#band-pass-info').css 'display', 'block'
       else
         mgr.remove handle1
         mgr.remove handle2
         mgr.remove bandPassInd
         pipeline.bandPass.clear()
-        $('#band-pass-info').css 'visibility', 'hidden'
+        $('#band-pass-info').css 'display', 'none'
 
     notchFilters = []
 
-    onNotchFilterMove = ->
+    updateNotchFilterInfo = ->
       info = $('#notch-filter-info')
       frequencies = ("#{Math.round(notchFilter.filter.frequency.value)} Hz" for notchFilter in notchFilters)
       frequencies = frequencies.join ', '
@@ -162,10 +165,22 @@ $(document).ready ->
 
     $('#add-notch-filter').click ->
       if notchFilters.length == 0
-        $('#notch-filter-info').css 'visibility', 'visible'
+        $('#notch-filter-info').css 'display', 'block'
+        $('#remove-notch-filter').css 'display', 'block'
 
-      filter = pipeline.toneFilter.addFrequency 500
+      filter = pipeline.toneFilter.addFilter()
       notchFilter = new NotchFilter(filter)
       notchFilter.addTo mgr
-      notchFilter.onMove = onNotchFilterMove
+      notchFilter.onMove = updateNotchFilterInfo
       notchFilters.push notchFilter
+      updateNotchFilterInfo()
+
+    $('#remove-notch-filter').click ->
+      notchFilter = notchFilters.pop()
+      pipeline.toneFilter.removeFilter notchFilter.filter
+      notchFilter.removeFrom mgr
+      updateNotchFilterInfo()
+
+      if notchFilters.length == 0
+        $('#notch-filter-info').css 'display', 'none'
+        $('#remove-notch-filter').css 'display', 'none'

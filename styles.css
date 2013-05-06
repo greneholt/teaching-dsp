@@ -33,7 +33,12 @@ canvas {
 	padding: 10px;
 	text-align: center;
 	width: 14em;
-	height: 1.3em;
+	height: 15px;
+}
+
+.button.bad {
+	background: #FC5353;
+	border: 1px solid #D60F0F;
 }
 
 .option {
@@ -46,7 +51,7 @@ canvas {
 	padding: 10px;
 	text-align: center;
 	width: 14em;
-	height: 1.3em;
+	height: 15px;
 }
 
 .option.enabled {
@@ -70,4 +75,36 @@ canvas {
 	padding: 10px;
 	-webkit-border-radius: 5px;
 	text-align: center;
+}
+
+#volume {
+	float: left;
+	margin: 5px;
+	padding: 2px 2px 2px 5px;
+	-webkit-border-radius: 5px;
+	background: #fafafa;
+	border: 1px solid #ddd;
+	height: 31px;
+}
+
+#volume label {
+	vertical-align: 11px;
+}
+
+#volume input {
+	width: 150px;
+	height: 31px;
+	margin: 0;
+	padding: 0;
+	-webkit-appearance: none !important;
+    background: #ddd;
+    -webkit-border-radius: 3px;
+}
+
+#volume input::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    height: 31px;
+    width: 31px;
+    background: #333;
+    -webkit-border-radius: 3px;
 }

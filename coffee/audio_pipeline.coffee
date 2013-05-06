@@ -59,10 +59,9 @@ class MultiNotchFilter
   constructor: (@context) ->
     @filters = []
 
-  addFrequency: (frequency) ->
+  addFilter: ->
     filter = @context.createBiquadFilter()
     filter.type = 6
-    filter.frequency.value = frequency
     filter.Q.value = 500
 
     if @filters.length > 0
@@ -151,20 +150,20 @@ class root.AudioPipeline
     @tones = []
     @oscillators = []
 
-    @bandPass = new MultiStageFilter @context
-    @bandPass.connectFrom @preAnalyser
+    @toneFilter = new MultiNotchFilter @context
+    @toneFilter.connectFrom @preAnalyser
 
     @volume = @context.createGainNode()
 
-    @bandPass.connectTo @volume
+    @toneFilter.connectTo @volume
 
-    @toneFilter = new MultiNotchFilter @context
-    @toneFilter.connectFrom @volume
+    @bandPass = new MultiStageFilter @context
+    @bandPass.connectFrom @volume
 
     @postAnalyser = @context.createAnalyser()
     @postAnalyser.smoothingTimeConstant.value = 100
 
-    @toneFilter.connectTo @postAnalyser
+    @bandPass.connectTo @postAnalyser
 
     @postAnalyser.connect @context.destination
 
@@ -172,6 +171,9 @@ class root.AudioPipeline
     @voiceFilter.set 2, 8, voiceF, voiceQ
 
     @noiseFilter.set 6, 8, voiceF, voiceQ
+
+  setVolume: (gain) ->
+    @volume.gain.value = gain
 
   play: (voiceBuffer) ->
     this.stop() if @playing
