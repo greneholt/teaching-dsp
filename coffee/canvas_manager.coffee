@@ -6,51 +6,59 @@ class root.CanvasManager
     @renderables = []
     @interactives = []
 
-    @dragging = false
+    @touches = {}
+    @touchCount = 0
 
+    # mouse events are the 0th touch
     @canvas.mousedown (e) =>
-      this.grab e
+      this.grab 0, e
 
-    @canvas.mouseup (e) =>
-      this.release e
+    $(window).mouseup (e) =>
+      this.release 0, e
 
-    # simulate mouseup on mouseout if the mouse was depressed (this fixes dragging glitches)
-    @canvas.mouseout (e) =>
-      this.release e
+    # simulate release on mouseout if the mouse was depressed (this fixes dragging glitches)
+    $(window).mouseout (e) =>
+      if @touches[0]?
+        this.release 0, e
 
-    @canvas.mousemove (e) =>
-      this.drag e
+    $(window).mousemove (e) =>
+      this.drag 0, e
 
     @canvas.on 'touchstart', (e) =>
-      if this.grab e.originalEvent.touches[0]
-        e.preventDefault()
+      stop = false
+      for touch in e.originalEvent.changedTouches
+        stop = true if this.grab touch.identifier, touch
 
-    @canvas.on 'touchend', (e) =>
-      e.preventDefault() if @dragging
-      this.release e.originalEvent.touches[0]
+      e.preventDefault() if stop
 
-    @canvas.on 'touchmove', (e) =>
-      e.preventDefault() if @dragging
-      this.drag e.originalEvent.touches[0]
+    $(window).on 'touchend', (e) =>
+      e.preventDefault() if @touchCount > 0
+      this.release touch.identifier, touch for touch in e.originalEvent.changedTouches
 
-  grab: (e) ->
-    [mouseX, mouseY] = this.getPosition(e)
+    $(window).on 'touchmove', (e) =>
+      e.preventDefault() if @touchCount > 0
+      this.drag touch.identifier, touch for touch in e.originalEvent.changedTouches
+
+  grab: (id, e) ->
+    [x, y] = this.getPosition(e)
     for o in @interactives
-      if o.grab(mouseX, mouseY)
-        @dragging = true
-    return @dragging
+      if o.grab(x, y)
+        @touches[id] = o
+        @touchCount++
+        return true
 
-  release: (e) ->
-    if @dragging
-      @dragging = false
-      for o in @interactives
-        o.release()
+    return false
 
-  drag: (e) ->
-    if @dragging
-      [mouseX, mouseY] = this.getPosition(e)
-      for o in @interactives
-        o.drag(mouseX, mouseY)
+  release: (id, e) ->
+    if @touches[id]?
+      @touches[id].release()
+      delete @touches[id]
+      @touchCount--
+
+  drag: (id, e) ->
+    if @touches[id]?
+      [x, y] = this.getPosition(e)
+      @touches[id].drag x, y
 
       this.render()
 

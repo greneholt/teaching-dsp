@@ -1,14 +1,13 @@
 root = exports ? this
 
 class root.DragHandle
-  constructor: (canvasManager, @x, @y, @width, @height, @options = {}) ->
-    @dragging = false
+  constructor: (canvasManager, @x, @y, @width, @height, @color, @options = {}) ->
     canvasManager.add(this, true)
 
   render: (ctx, width, height) ->
     ctx.save()
     ctx.translate @x, @y
-    ctx.fillStyle = "#777777"
+    ctx.fillStyle = @color
     ctx.beginPath()
     ctx.moveTo 0, @height
     ctx.lineTo @width, @height
@@ -19,21 +18,24 @@ class root.DragHandle
 
   grab: (x, y) ->
     if x > @x and x < @x + @width and y > @y and y < @y + @height
-      @mouseStartX = x
-      @mouseStartY = y
-      @dragging = true
+      @dragStartX = x
+      @dragStartY = y
       @startX = @x
       @startY = @y
-
       return true
+    else
+      return false
 
   release: ->
-    @dragging = false
 
   drag: (x, y) ->
-    if @dragging
-      @x = x - @mouseStartX + @startX unless @options.constrainX
-      @y = y - @mouseStartY + @startY unless @options.constrainY
+    @x = x - @dragStartX + @startX
+    @x = @options.minX if @options.minX? and @x < @options.minX
+    @x = @options.maxX if @options.maxX? and @x > @options.maxX
+
+    @y = y - @dragStartY + @startY
+    @y = @options.minY if @options.minY? and @y < @options.minY
+    @y = @options.maxY if @options.maxY? and @y > @options.maxY
 
 class root.SpectrumDisplay
   constructor: (canvasManager, @x, @y, @width, @height) ->

@@ -84,8 +84,8 @@ $(document).ready ->
   canvas = $('canvas')
   canvasManager = new CanvasManager(canvas)
 
-  handle1 = new DragHandle(canvasManager, 20, 300, 30, 40, {constrainY: true})
-  handle2 = new DragHandle(canvasManager, 40, 300, 30, 40, {constrainY: true})
+  handle1 = new DragHandle(canvasManager, 20, 300, 30, 40, "#005500", {minY: 300, maxY: 300})
+  handle2 = new DragHandle(canvasManager, 80, 300, 30, 40, "#005500", {minY: 300, maxY: 300})
 
   specDisplay = new SpectrumDisplay(canvasManager, 0, 0, 600, 300)
 
