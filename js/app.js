@@ -25,24 +25,26 @@
   };
 
   $(document).ready(function() {
-    var bandPassInd, canvas, canvasManager, context, handle1, handle2, noiseBuffer, onLoaded, setup, specDisplay, toLoad, voiceBuffer;
+    var bandPassInd, calculateBandPass, canvas, context, handle1, handle2, mgr, noiseBuffer, onLoaded, setup, specDisplay, toLoad, voiceBuffer;
 
+    window.scrollTo(0, 1);
     context = new webkitAudioContext();
     voiceBuffer = null;
     noiseBuffer = null;
     canvas = $('canvas');
-    canvasManager = new CanvasManager(canvas);
-    specDisplay = new SpectrumDisplay(canvasManager, 30, 0, 600, 300);
-    handle1 = new DragHandle(canvasManager, 20, 350, 30, 30, "#005500", {
-      minX: 15,
-      maxX: 615
+    mgr = new CanvasManager(canvas);
+    specDisplay = new SpectrumDisplay(25, 0, 700, 200);
+    mgr.add(specDisplay);
+    handle1 = new DragHandle(0, 250, 50, 50, "#3EA828", {
+      minX: 0,
+      maxX: 600
     });
-    handle2 = new DragHandle(canvasManager, 80, 350, 30, 30, "#005500", {
-      minX: 15,
-      maxX: 615
+    handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {
+      minX: 0,
+      maxX: 600
     });
-    bandPassInd = new RangeIndicator(canvasManager, 0, 300, "#005500", handle1, handle2);
-    canvasManager.render();
+    bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2);
+    mgr.render();
     toLoad = 2;
     onLoaded = function() {
       toLoad--;
@@ -58,26 +60,31 @@
       noiseBuffer = buffer;
       return onLoaded();
     });
+    calculateBandPass = function() {
+      var Q, delta, f1, f2, freq, x1, x2, _ref;
+
+      x1 = handle1.getMarkerX();
+      x2 = handle2.getMarkerX();
+      if (x1 > x2) {
+        _ref = [x2, x1], x1 = _ref[0], x2 = _ref[1];
+      }
+      f1 = specDisplay.convertXtoF(x1, context.sampleRate);
+      f2 = specDisplay.convertXtoF(x2, context.sampleRate);
+      delta = f2 - f1;
+      freq = (f1 + f2) / 2;
+      Q = freq / delta;
+      return [freq, Q];
+    };
     return setup = function() {
       var freq, intervalId, pipeline, playing, _i, _len, _ref;
 
       pipeline = new AudioPipeline(context, noiseBuffer);
       specDisplay.analyser = pipeline.postAnalyser;
       pipeline.setInterference(1500, 1, [900, 1100, 1300, 1500, 1700, 1900]);
-      pipeline.bandPass.set(2, 8, 1500, 1);
       handle1.onMove = handle2.onMove = function() {
-        var Q, delta, f1, f2, freq, x1, x2, _ref;
+        var Q, freq, _ref;
 
-        x1 = handle1.getMarkerX();
-        x2 = handle2.getMarkerX();
-        if (x1 > x2) {
-          _ref = [x2, x1], x1 = _ref[0], x2 = _ref[1];
-        }
-        f1 = specDisplay.convertXtoF(x1, context.sampleRate);
-        f2 = specDisplay.convertXtoF(x2, context.sampleRate);
-        delta = f2 - f1;
-        freq = (f1 + f2) / 2;
-        Q = freq / delta;
+        _ref = calculateBandPass(), freq = _ref[0], Q = _ref[1];
         pipeline.bandPass.setFrequency(freq);
         return pipeline.bandPass.setQ(Q);
       };
@@ -88,17 +95,42 @@
       }
       playing = false;
       intervalId = null;
-      return $('#play-button').click(function() {
+      $('#play-button').click(function() {
         if (playing) {
           playing = false;
+          $(this).text("Play");
           pipeline.stop();
           return clearInterval(intervalId);
         } else {
           playing = true;
+          $(this).text("Stop");
           pipeline.play(voiceBuffer);
           return intervalId = setInterval(function() {
-            return canvasManager.render();
+            return mgr.render();
           }, 30);
+        }
+      });
+      $('#show-output-spectrum').change(function() {
+        if (this.checked) {
+          return specDisplay.analyser = pipeline.postAnalyser;
+        } else {
+          return specDisplay.analyser = pipeline.preAnalyser;
+        }
+      });
+      return $('#enable-band-pass').change(function() {
+        var Q, _ref1;
+
+        if (this.checked) {
+          mgr.add(handle1, true);
+          mgr.add(handle2, true);
+          mgr.add(bandPassInd);
+          _ref1 = calculateBandPass(), freq = _ref1[0], Q = _ref1[1];
+          return pipeline.bandPass.set(2, 8, freq, Q);
+        } else {
+          mgr.remove(handle1);
+          mgr.remove(handle2);
+          mgr.remove(bandPassInd);
+          return pipeline.bandPass.clear();
         }
       });
     };

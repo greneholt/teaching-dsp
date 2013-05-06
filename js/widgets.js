@@ -5,14 +5,13 @@
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
 
   root.DragHandle = (function() {
-    function DragHandle(canvasManager, x, y, width, height, color, options) {
+    function DragHandle(x, y, width, height, color, options) {
       this.x = x;
       this.y = y;
       this.width = width;
       this.height = height;
       this.color = color;
       this.options = options != null ? options : {};
-      canvasManager.add(this, true);
       this.onMove = null;
     }
 
@@ -63,13 +62,12 @@
   })();
 
   root.RangeIndicator = (function() {
-    function RangeIndicator(canvasManager, y, height, color, drag1, drag2) {
+    function RangeIndicator(y, height, color, drag1, drag2) {
       this.y = y;
       this.height = height;
       this.color = color;
       this.drag1 = drag1;
       this.drag2 = drag2;
-      canvasManager.add(this);
     }
 
     RangeIndicator.prototype.render = function(ctx, width, heigh) {
@@ -91,12 +89,11 @@
   })();
 
   root.SpectrumDisplay = (function() {
-    function SpectrumDisplay(canvasManager, x, y, width, height) {
+    function SpectrumDisplay(x, y, width, height) {
       this.x = x;
       this.y = y;
       this.width = width;
       this.height = height;
-      canvasManager.add(this);
       this.analyser = null;
     }
 
@@ -112,7 +109,7 @@
         ctx.fillStyle = "#47ACF5";
         _results = [];
         for (i = _i = 0, _ref = this.width; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-          _results.push(ctx.fillRect(this.x + i, this.y + this.height, 1, -freqByteData[i]));
+          _results.push(ctx.fillRect(this.x + i, this.y + this.height, 1, -(freqByteData[i] / 255) * this.height));
         }
         return _results;
       }

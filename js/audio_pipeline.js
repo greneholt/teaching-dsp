@@ -35,6 +35,14 @@
       }
     };
 
+    MultiStageFilter.prototype.clear = function() {
+      this.disconnect();
+      this.filters = [];
+      if ((this.from != null) && (this.to != null)) {
+        return this.from.connect(this.to);
+      }
+    };
+
     MultiStageFilter.prototype.disconnect = function() {
       if (this.from != null) {
         this.from.disconnect(0);

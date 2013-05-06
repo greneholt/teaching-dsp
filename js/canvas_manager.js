@@ -15,7 +15,9 @@
       this.touches = {};
       this.touchCount = 0;
       this.canvas.mousedown(function(e) {
-        return _this.grab(0, e);
+        if (_this.grab(0, e)) {
+          return e.preventDefault();
+        }
       });
       $(window).mouseup(function(e) {
         return _this.release(0, e);
@@ -121,8 +123,8 @@
     };
 
     CanvasManager.prototype.remove = function(object) {
-      remove(object, this.renderables);
-      return remove(object, this.interactives);
+      this.arrayRemove(object, this.renderables);
+      return this.arrayRemove(object, this.interactives);
     };
 
     CanvasManager.prototype.render = function() {
@@ -140,7 +142,7 @@
       return _results;
     };
 
-    CanvasManager.prototype.remove = function(object, array) {
+    CanvasManager.prototype.arrayRemove = function(object, array) {
       var index;
 
       index = array.indexOf(object);
