@@ -66,12 +66,15 @@ $(document).ready ->
     delta = f2 - f1
     freq = (f1 + f2)/2
     Q = freq / delta
+
+    $('#band-pass-info').text "Band-Pass Filter: #{Math.round(f1)}-#{Math.round(f2)} Hz, Bandwidth: #{Math.round(f2 - f1)} Hz"
+
     return [freq, Q]
 
   setup = ->
     pipeline = new AudioPipeline(context, noiseBuffer)
 
-    specDisplay.analyser = pipeline.postAnalyser
+    specDisplay.analyser = pipeline.preAnalyser
 
     pipeline.setInterference 1500, 1, [900, 1100, 1300, 1500, 1700, 1900]
 
@@ -117,8 +120,10 @@ $(document).ready ->
         mgr.add bandPassInd
         [freq, Q] = calculateBandPass()
         pipeline.bandPass.set 2, 8, freq, Q
+        $('#band-pass-info').css 'visibility', 'visible'
       else
         mgr.remove handle1
         mgr.remove handle2
         mgr.remove bandPassInd
         pipeline.bandPass.clear()
+        $('#band-pass-info').css 'visibility', 'hidden'

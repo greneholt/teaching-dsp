@@ -56,7 +56,7 @@ class root.SpectrumDisplay
     @analyser = null
 
   render: (ctx, width, height) ->
-    ctx.strokeStyle = "#444444"
+    ctx.strokeStyle = "#aaaaaa"
     ctx.lineWidth = 1
     ctx.strokeRect @x, @y, @width, @height
     if @analyser?
