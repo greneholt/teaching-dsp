@@ -31,7 +31,7 @@ $(document).ready ->
   specDisplay = new SpectrumDisplay(25, 0, 700, 200)
   mgr.add specDisplay
 
-  handle1 = new DragHandle(0, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
+  handle1 = new DragHandle(100, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
   handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
 
   bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2)
