@@ -17,22 +17,29 @@ loadSound = (context, url, callback) ->
   request.send()
 
 $(document).ready ->
+  window.scrollTo 0, 1
+
   context = new webkitAudioContext()
 
   voiceBuffer = null
   noiseBuffer = null
 
   canvas = $('canvas')
-  canvasManager = new CanvasManager(canvas)
 
-  specDisplay = new SpectrumDisplay(canvasManager, 30, 0, 600, 300)
+  mgr = new CanvasManager(canvas)
 
-  handle1 = new DragHandle(canvasManager, 20, 350, 30, 30, "#005500", {minX: 15, maxX: 615})
-  handle2 = new DragHandle(canvasManager, 80, 350, 30, 30, "#005500", {minX: 15, maxX: 615})
+  specDisplay = new SpectrumDisplay(25, 0, 700, 200)
+  mgr.add specDisplay
 
-  bandPassInd = new RangeIndicator(canvasManager, 0, 300, "#005500", handle1, handle2)
+  handle1 = new DragHandle(20, 250, 50, 50, "#005500", {minX: 0, maxX: 600})
+  mgr.add handle1, true
+  handle2 = new DragHandle(80, 250, 50, 50, "#005500", {minX: 0, maxX: 600})
+  mgr.add handle2, true
 
-  canvasManager.render()
+  bandPassInd = new RangeIndicator(0, 200, "#005500", handle1, handle2)
+  mgr.add bandPassInd
+
+  mgr.render()
 
   toLoad = 2
 
@@ -84,12 +91,20 @@ $(document).ready ->
     $('#play-button').click ->
       if playing
         playing = false
+        $(this).text "Play"
         pipeline.stop()
         clearInterval intervalId
       else
         playing = true
+        $(this).text "Stop"
         pipeline.play voiceBuffer
 
         intervalId = setInterval ->
-          canvasManager.render()
+          mgr.render()
         , 30
+
+    $('#show-output-spectrum').change ->
+      if this.checked
+        specDisplay.analyser = pipeline.postAnalyser
+      else
+        specDisplay.analyser = pipeline.preAnalyser

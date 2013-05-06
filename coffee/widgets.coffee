@@ -1,8 +1,7 @@
 root = exports ? this
 
 class root.DragHandle
-  constructor: (canvasManager, @x, @y, @width, @height, @color, @options = {}) ->
-    canvasManager.add(this, true)
+  constructor: (@x, @y, @width, @height, @color, @options = {}) ->
     @onMove = null
 
   render: (ctx, width, height) ->
@@ -38,8 +37,7 @@ class root.DragHandle
     @onMove() if @onMove?
 
 class root.RangeIndicator
-  constructor: (canvasManager, @y, @height, @color, @drag1, @drag2) ->
-    canvasManager.add(this)
+  constructor: (@y, @height, @color, @drag1, @drag2) ->
 
   render: (ctx, width, heigh) ->
     ctx.fillStyle = @color
@@ -54,8 +52,7 @@ class root.RangeIndicator
     ctx.globalAlpha = 1 # reset alpha
 
 class root.SpectrumDisplay
-  constructor: (canvasManager, @x, @y, @width, @height) ->
-    canvasManager.add(this)
+  constructor: (@x, @y, @width, @height) ->
     @analyser = null
 
   render: (ctx, width, height) ->
