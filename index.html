@@ -12,14 +12,16 @@
 	<script src="js/app.js"></script>
 </head>
 <body>
-<canvas width="725" height="300"></canvas>
+<canvas width="725" height="301"></canvas>
 
-<div id="controls">
-	<div id="play-button">Play</div>
-
-	<div><label>Show Output Spectrum <input type="checkbox" id="show-output-spectrum" checked></label></div>
-	<div><label>Enable band-pass filter <input type="checkbox" id="enable-band-pass"></label></div>
-</div>
+<div id="volume"><label for="volume-slider">Volume</label> <input type="range" id="volume-slider" min="-100" max="200" value="10"></div>
+<div id="play-button" class="button">Play</div>
+<div class="option" id="show-output-spectrum">Show Output Spectrum</div>
+<div class="option" id="enable-band-pass">Enable Band-Pass Filter</div>
+<div class="button" id="add-notch-filter">Add Notch Filter</div>
+<div class="button bad" id="remove-notch-filter" style="display: none;">Remove Notch Filter</div>
+<div class="info" id="band-pass-info" style="display: none;"></div>
+<div class="info" id="notch-filter-info" style="display: none;"></div>
 
 </body>
 </html>

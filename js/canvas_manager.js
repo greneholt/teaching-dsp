@@ -118,13 +118,15 @@
       }
       this.renderables.push(object);
       if (interactive) {
-        return this.interactives.push(object);
+        this.interactives.unshift(object);
       }
+      return this.render();
     };
 
     CanvasManager.prototype.remove = function(object) {
       this.arrayRemove(object, this.renderables);
-      return this.arrayRemove(object, this.interactives);
+      this.arrayRemove(object, this.interactives);
+      return this.render();
     };
 
     CanvasManager.prototype.render = function() {

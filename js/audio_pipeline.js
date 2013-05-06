@@ -115,12 +115,11 @@
       this.filters = [];
     }
 
-    MultiNotchFilter.prototype.addFrequency = function(frequency) {
+    MultiNotchFilter.prototype.addFilter = function() {
       var filter;
 
       filter = this.context.createBiquadFilter();
       filter.type = 6;
-      filter.frequency.value = frequency;
       filter.Q.value = 500;
       if (this.filters.length > 0) {
         this.filters[this.filters.length - 1].disconnect(0);
@@ -132,13 +131,14 @@
       if (this.to != null) {
         filter.connect(this.to);
       }
-      return this.filters.push(filter);
+      this.filters.push(filter);
+      return filter;
     };
 
-    MultiNotchFilter.prototype.removeFilter = function(i) {
-      var filter;
+    MultiNotchFilter.prototype.removeFilter = function(filter) {
+      var i;
 
-      filter = this.filters[i];
+      i = this.filters.indexOf(filter);
       filter.disconnect(0);
       if (i === 0) {
         if (this.from != null) {
@@ -166,13 +166,13 @@
     };
 
     MultiNotchFilter.prototype.removeFrequency = function(frequency) {
-      var filter, i, _i, _len, _ref;
+      var filter, _i, _len, _ref;
 
       _ref = this.filters;
-      for (filter = _i = 0, _len = _ref.length; _i < _len; filter = ++_i) {
-        i = _ref[filter];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        filter = _ref[_i];
         if (filter.frequency.value === frequency) {
-          this.removeFilter(i);
+          this.removeFilter(filter);
           return true;
         }
       }
@@ -241,15 +241,15 @@
       this.noiseFilter.connectTo(this.preAnalyser);
       this.tones = [];
       this.oscillators = [];
-      this.bandPass = new MultiStageFilter(this.context);
-      this.bandPass.connectFrom(this.preAnalyser);
-      this.volume = this.context.createGainNode();
-      this.bandPass.connectTo(this.volume);
       this.toneFilter = new MultiNotchFilter(this.context);
-      this.toneFilter.connectFrom(this.volume);
+      this.toneFilter.connectFrom(this.preAnalyser);
+      this.volume = this.context.createGainNode();
+      this.toneFilter.connectTo(this.volume);
+      this.bandPass = new MultiStageFilter(this.context);
+      this.bandPass.connectFrom(this.volume);
       this.postAnalyser = this.context.createAnalyser();
       this.postAnalyser.smoothingTimeConstant.value = 100;
-      this.toneFilter.connectTo(this.postAnalyser);
+      this.bandPass.connectTo(this.postAnalyser);
       this.postAnalyser.connect(this.context.destination);
     }
 
@@ -259,6 +259,10 @@
       return this.noiseFilter.set(6, 8, voiceF, voiceQ);
     };
 
+    AudioPipeline.prototype.setVolume = function(gain) {
+      return this.volume.gain.value = gain;
+    };
+
     AudioPipeline.prototype.play = function(voiceBuffer) {
       var freq, now, osc;
 
@@ -266,7 +270,6 @@
         this.stop();
       }
       this.playing = true;
-      console.log('audio pipeline playing');
       this.noiseSource = this.context.createBufferSource();
       this.noiseSource.buffer = this.noiseBuffer;
       this.noiseSource.loop = true;
@@ -302,7 +305,6 @@
         return;
       }
       this.playing = false;
-      console.log('audio pipeline stopping');
       now = this.context.currentTime;
       if (this.noiseSource != null) {
         this.noiseSource.noteOff(now);

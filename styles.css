@@ -4,6 +4,7 @@ body {
 	font: 12px "Lucida Grande", Arial, sans-serif;
 }
 
+/*
 @media (min-width: 925px) {
 	canvas {
 		float: left;
@@ -13,21 +14,97 @@ body {
 		margin-left: 725px;
 		width: 200px;
 	}
+}*/
+
+canvas {
+	float: left;
+	margin: 0 5px 5px 0;
 }
 
-#controls {
-	padding: 10px;
-}
-
-#play-button {
-	background: #2B64FF;
-	padding: 10px;
-	color: #fff;
-	font-weight: bold;
+.button {
 	-webkit-border-radius: 5px;
-	width: 150px;
-	text-align: center;
-	cursor: pointer;
+	background: #2B64FF;
 	border: 1px solid #0044FF;
+	color: #fff;
+	cursor: pointer;
+	float: left;
+	font-weight: bold;
+	margin: 5px;
+	padding: 10px;
+	text-align: center;
+	width: 14em;
+	height: 15px;
 }
 
+.button.bad {
+	background: #FC5353;
+	border: 1px solid #D60F0F;
+}
+
+.option {
+	-webkit-border-radius: 5px;
+	background: #B0E5FF;
+	border: 1px solid #59C8FF;
+	cursor: pointer;
+	float: left;
+	margin: 5px;
+	padding: 10px;
+	text-align: center;
+	width: 14em;
+	height: 15px;
+}
+
+.option.enabled {
+	background: #96FFA3;
+	border: 1px solid #1FE036;
+}
+
+.option:after {
+	content: " ✗";
+}
+
+.option.enabled:after {
+	content: " ✓";
+}
+
+.info {
+	float: left;
+	margin: 5px;
+	border: 1px solid #aaa;
+	background: #f3f3f3;
+	padding: 10px;
+	-webkit-border-radius: 5px;
+	text-align: center;
+}
+
+#volume {
+	float: left;
+	margin: 5px;
+	padding: 2px 2px 2px 5px;
+	-webkit-border-radius: 5px;
+	background: #fafafa;
+	border: 1px solid #ddd;
+	height: 31px;
+}
+
+#volume label {
+	vertical-align: 11px;
+}
+
+#volume input {
+	width: 150px;
+	height: 31px;
+	margin: 0;
+	padding: 0;
+	-webkit-appearance: none !important;
+    background: #ddd;
+    -webkit-border-radius: 3px;
+}
+
+#volume input::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    height: 31px;
+    width: 31px;
+    background: #333;
+    -webkit-border-radius: 3px;
+}

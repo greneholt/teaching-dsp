@@ -25,6 +25,9 @@
       ctx.lineTo(this.width / 2, 0);
       ctx.closePath();
       ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#333333";
+      ctx.stroke();
       return ctx.restore();
     };
 
@@ -62,21 +65,21 @@
   })();
 
   root.RangeIndicator = (function() {
-    function RangeIndicator(y, height, color, drag1, drag2) {
+    function RangeIndicator(y, height, color, handle1, handle2) {
       this.y = y;
       this.height = height;
       this.color = color;
-      this.drag1 = drag1;
-      this.drag2 = drag2;
+      this.handle1 = handle1;
+      this.handle2 = handle2;
     }
 
     RangeIndicator.prototype.render = function(ctx, width, heigh) {
       var x1, x2, _ref;
 
       ctx.fillStyle = this.color;
-      ctx.globalAlpha = 0.5;
-      x1 = this.drag1.getMarkerX();
-      x2 = this.drag2.getMarkerX();
+      ctx.globalAlpha = 0.3;
+      x1 = this.handle1.getMarkerX();
+      x2 = this.handle2.getMarkerX();
       if (x1 > x2) {
         _ref = [x2, x1], x1 = _ref[0], x2 = _ref[1];
       }
@@ -88,8 +91,31 @@
 
   })();
 
+  root.LineIndicator = (function() {
+    function LineIndicator(y, height, color, handle) {
+      this.y = y;
+      this.height = height;
+      this.color = color;
+      this.handle = handle;
+    }
+
+    LineIndicator.prototype.render = function(ctx, width, height) {
+      var x;
+
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = 0.3;
+      x = this.handle.getMarkerX();
+      ctx.fillRect(x - 1, this.y, 3, this.height);
+      return ctx.globalAlpha = 1;
+    };
+
+    return LineIndicator;
+
+  })();
+
   root.SpectrumDisplay = (function() {
-    function SpectrumDisplay(x, y, width, height) {
+    function SpectrumDisplay(context, x, y, width, height) {
+      this.context = context;
       this.x = x;
       this.y = y;
       this.width = width;
@@ -101,7 +127,7 @@
       var freqByteData, i, _i, _ref, _results;
 
       ctx.strokeStyle = "#444444";
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.strokeRect(this.x, this.y, this.width, this.height);
       if (this.analyser != null) {
         freqByteData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -115,11 +141,11 @@
       }
     };
 
-    SpectrumDisplay.prototype.convertXtoF = function(x, Fs) {
+    SpectrumDisplay.prototype.convertXtoF = function(x) {
       if (this.analyser == null) {
         return null;
       }
-      return (x - this.x) / this.analyser.frequencyBinCount * Fs / 2;
+      return (x - this.x) / this.analyser.frequencyBinCount * this.context.sampleRate / 2;
     };
 
     return SpectrumDisplay;
