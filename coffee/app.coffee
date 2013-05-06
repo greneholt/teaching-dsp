@@ -41,10 +41,13 @@ $(document).ready ->
     constructor: (@filter) ->
       @handle = new DragHandle(400, 200, 50, 50, "#EB1A1A", {minX: 0, maxX: 675})
       @indicator = new LineIndicator(0, 200, "#EB1A1A", @handle)
-      @handle.onMove = =>
-        f = specDisplay.convertXtoF @handle.getMarkerX(), context.sampleRate
-        f = Math.round(f/100)*100
-        @filter.frequency.value = f
+
+      this.updateFilter()
+
+      @onMove = null
+      @handle.onMove =>
+        this.updateFilter()
+        @onMove() if @onMove?
 
     addTo: (canvasManager) ->
       canvasManager.add @handle, true
@@ -53,6 +56,11 @@ $(document).ready ->
     removeFrom: (canvasManager) ->
       canvasManager.remove @handle
       canvasManager.remove @indicator
+
+    updateFilter: =>
+      f = specDisplay.convertXtoF @handle.getMarkerX(), context.sampleRate
+      f = Math.round(f/100)*100 # round to nearest 100 Hz
+      @filter.frequency.value = f
 
   mgr.render()
 
@@ -101,9 +109,6 @@ $(document).ready ->
       pipeline.bandPass.setFrequency freq
       pipeline.bandPass.setQ Q
 
-    # for freq in [900, 1100, 1300, 1500, 1700, 1900]
-    #   pipeline.toneFilter.addFrequency freq
-
     playing = false
     intervalId = null
 
@@ -130,6 +135,7 @@ $(document).ready ->
         specDisplay.analyser = pipeline.postAnalyser
       else
         specDisplay.analyser = pipeline.preAnalyser
+      mgr.render()
 
     $('#enable-band-pass').click (e) ->
       if $(e.target).is('.enabled')
@@ -148,8 +154,18 @@ $(document).ready ->
 
     notchFilters = []
 
+    onNotchFilterMove = ->
+      info = $('#notch-filter-info')
+      frequencies = ("#{Math.round(notchFilter.filter.frequency.value)} Hz" for notchFilter in notchFilters)
+      frequencies = frequencies.join ', '
+      info.text "Notch Filters: #{frequencies}"
+
     $('#add-notch-filter').click ->
+      if notchFilters.length == 0
+        $('#notch-filter-info').css 'visibility', 'visible'
+
       filter = pipeline.toneFilter.addFrequency 500
       notchFilter = new NotchFilter(filter)
       notchFilter.addTo mgr
+      notchFilter.onMove = onNotchFilterMove
       notchFilters.push notchFilter
