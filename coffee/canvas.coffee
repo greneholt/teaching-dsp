@@ -4,6 +4,7 @@ root = exports ? this
 
 CanvasManager = root.CanvasManager
 DragHandle = root.DragHandle
+RangeIndicator = root.RangeIndicator
 SpectrumDisplay = root.SpectrumDisplay
 
 # context = null
@@ -84,10 +85,12 @@ $(document).ready ->
   canvas = $('canvas')
   canvasManager = new CanvasManager(canvas)
 
-  handle1 = new DragHandle(canvasManager, 20, 300, 30, 40, "#005500", {minY: 300, maxY: 300})
-  handle2 = new DragHandle(canvasManager, 80, 300, 30, 40, "#005500", {minY: 300, maxY: 300})
+  specDisplay = new SpectrumDisplay(canvasManager, 30, 0, 600, 300)
 
-  specDisplay = new SpectrumDisplay(canvasManager, 0, 0, 600, 300)
+  handle1 = new DragHandle(canvasManager, 20, 350, 30, 30, "#005500", {minX: 15, maxX: 615})
+  handle2 = new DragHandle(canvasManager, 80, 350, 30, 30, "#005500", {minX: 15, maxX: 615})
+
+  bandPassInd = new RangeIndicator(canvasManager, 0, 300, "#005500", handle1, handle2)
 
   canvasManager.render()
 
@@ -95,7 +98,6 @@ $(document).ready ->
 
   onLoaded = ->
     toLoad--
-    console.log "toLoad = #{toLoad}"
     if toLoad == 0
       setup()
 
@@ -108,8 +110,6 @@ $(document).ready ->
     onLoaded()
 
   setup = ->
-    console.log 'everything loaded, setting up'
-
     pipeline = new AudioPipeline(context, noiseBuffer)
 
     specDisplay.analyser = pipeline.postAnalyser
@@ -118,38 +118,38 @@ $(document).ready ->
 
     pipeline.bandPass.set 2, 8, 1500, 1
 
+    handle1.onMove = handle2.onMove = ->
+      x1 = handle1.getMarkerX()
+      x2 = handle2.getMarkerX()
+
+      if x1 > x2
+        [x1, x2] = [x2, x1]
+
+      f1 = specDisplay.convertXtoF x1, context.sampleRate
+      f2 = specDisplay.convertXtoF x2, context.sampleRate
+
+      delta = f2 - f1
+      freq = (f1 + f2)/2
+      Q = freq / delta
+
+      pipeline.bandPass.setFrequency freq
+      pipeline.bandPass.setQ Q
+
     for freq in [900, 1100, 1300, 1500, 1700, 1900]
       pipeline.toneFilter.addFrequency freq
 
+    playing = false
+    intervalId = null
+
     $('#play-button').click ->
-      console.log 'play clicked'
+      if playing
+        playing = false
+        pipeline.stop()
+        clearInterval intervalId
+      else
+        playing = true
+        pipeline.play voiceBuffer
 
-      id = setInterval ->
-        canvasManager.render()
-      , 30
-
-      pipeline.play voiceBuffer, ->
-        clearInterval id
-
-    # preAnalyser = context.createAnalyser()
-    # preAnalyser.smoothingTimeConstant.value = 100
-
-    # sources = makeSourcePipeline voiceBuffer, 1500, 1, 1, [900, 1100, 1300, 1500, 1700, 1900], preAnalyser
-
-    # volume = context.createGainNode()
-    # volume.gain.value = 5
-
-    # postAnalyzer = context.createAnalyser()
-    # postAnalyzer.smoothingTimeConstant.value = 100
-
-    # makeFilterPipeline preAnalyser, 1500, 1, [900, 1100, 1300, 1500, 1700, 1900], volume
-
-    # volume.connect postAnalyzer
-
-    # postAnalyzer.connect context.destination
-
-    # specDisplay.analyser = postAnalyzer
-
-    # for source in sources
-    #   source.noteOn 0
-    #   source.noteOff 20
+        intervalId = setInterval ->
+          canvasManager.render()
+        , 30

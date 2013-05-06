@@ -18,6 +18,8 @@ class root.CanvasManager
 
     # simulate release on mouseout if the mouse was depressed (this fixes dragging glitches)
     $(window).mouseout (e) =>
+      return if e.target != window
+
       if @touches[0]?
         this.release 0, e
 

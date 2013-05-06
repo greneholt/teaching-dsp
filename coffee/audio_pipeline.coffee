@@ -167,7 +167,7 @@ class root.AudioPipeline
 
     @noiseFilter.set 6, 8, voiceF, voiceQ
 
-  play: (voiceBuffer, finished = null) ->
+  play: (voiceBuffer) ->
     this.stop() if @playing
 
     @playing = true
@@ -175,10 +175,12 @@ class root.AudioPipeline
 
     @noiseSource = @context.createBufferSource()
     @noiseSource.buffer = @noiseBuffer
+    @noiseSource.loop = true
     @noiseFilter.connectFrom @noiseSource
 
     @voiceSource = @context.createBufferSource()
     @voiceSource.buffer = voiceBuffer
+    @voiceSource.loop = true
     @voiceSource.connect @voiceVolume
 
     now = @context.currentTime
@@ -193,11 +195,6 @@ class root.AudioPipeline
       osc
 
     @voiceSource.noteOn now + 2
-
-    setTimeout =>
-      this.stop()
-      finished() if finished?
-    , (2 + voiceBuffer.duration)*1000
 
   stop: ->
     return unless @playing
