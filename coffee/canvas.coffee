@@ -116,11 +116,10 @@ $(document).ready ->
 
     pipeline.setInterference 1500, 1, [900, 1100, 1300, 1500, 1700, 1900]
 
-    # pipeline.bandPass.setFrequency 1500
-    # pipeline.bandPass.setQ 1
+    pipeline.bandPass.set 2, 8, 1500, 1
 
-    # for freq in [900, 1100, 1300, 1500, 1700, 1900]
-    #  pipeline.toneFilter.addFrequency freq
+    for freq in [900, 1100, 1300, 1500, 1700, 1900]
+      pipeline.toneFilter.addFrequency freq
 
     $('#play-button').click ->
       console.log 'play clicked'

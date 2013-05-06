@@ -56,7 +56,7 @@ class MultiNotchFilter
 
   addFrequency: (frequency) ->
     filter = @context.createBiquadFilter()
-    filter.type = 2
+    filter.type = 6
     filter.frequency.value = frequency
     filter.Q.value = 500
 
