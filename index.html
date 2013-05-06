@@ -2,160 +2,20 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=320" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<title>Player</title>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<script src="jquery-2.0.0.js"></script>
+	<script src="js/canvas_manager.js"></script>
+	<script src="js/widgets.js"></script>
+	<script src="js/audio_pipeline.js"></script>
+	<script src="js/app.js"></script>
 </head>
 <body>
 
-<script type="text/javascript">
-var context = new webkitAudioContext();
+<div id="play-button" style="background: #ddd; padding: 5px; border: 1px solid #aaa;">Play/Stop</div>
 
-var makeFilter = function(inputNode, type, frequency, Q, order) {
-	var lastNode = inputNode;
-
-	for (var i = 0; i < order; i++) {
-		var filter = context.createBiquadFilter();
-		filter.type = type;
-		filter.frequency.value = frequency;
-		filter.Q.value = Q;
-		lastNode.connect(filter);
-		lastNode = filter;
-	}
-
-	return lastNode;
-};
-
-var soundSource = context.createBufferSource();
-var noiseSource = context.createBufferSource();
-
-var soundNode = makeFilter(soundSource, 2, 1500, 1, 8);
-
-var soundVolume = context.createGainNode();
-soundVolume.gain.value = 1;
-soundNode.connect(soundVolume);
-
-var noiseNode = makeFilter(noiseSource, 6, 1500, 1, 8);
-
-var analyser = context.createAnalyser();
-analyser.smoothingTimeConstant.value = 1;
-
-soundVolume.connect(analyser);
-noiseNode.connect(analyser);
-
-var oscillators = [];
-
-for (var i = 0; i < 10; i++) {
-	var osc = context.createOscillator();
-	osc.frequency.value = 600 + 200*i;
-	osc.connect(analyser);
-	oscillators.push(osc);
-}
-
-/*
-var m = 4000;
-var filterBuffer = context.createBuffer(1, m, soundBuffer.sampleRate);
-
-var audioData = filterBuffer.getChannelData(0);
-
-audioData[0] = 1;
-audioData[m/4] = 1;
-audioData[2*m/4] = 1;
-audioData[3*m/4] = 1;
-audioData[m-1] = 1;
-
-var conv = context.createConvolver();
-conv.normalize = false;
-conv.buffer = filterBuffer;
-*/
-
-var lastFilter = analyser;
-
-oscillators.forEach(function(osc) {
-	lastFilter = makeFilter(lastFilter, 6, osc.frequency.value, 500, 1);
-});
-
-lastFilter = makeFilter(lastFilter, 2, 1500, 1, 8);
-
-var postAnalyser = context.createAnalyser();
-postAnalyser.smoothingTimeConstant.value = 100;
-lastFilter.connect(postAnalyser);
-
-var volume = context.createGainNode();
-volume.gain.value = 1;
-
-postAnalyser.connect(volume);
-volume.connect(context.destination);
-
-var mouseX = 0;
-var mouseY = 0;
-
-var drawSpectrum = function() {
-	var canvas = document.querySelector('canvas');
-	var ctx = canvas.getContext('2d');
-	var width = canvas.width;
-	var height = canvas.height;
-
-	ctx.clearRect(0, 0, width, height);
-	ctx.fillStyle = "#47ACF5";
-
-	var freqByteData = new Uint8Array(postAnalyser.frequencyBinCount);
-	postAnalyser.getByteFrequencyData(freqByteData);
-
-	for (var i = 0; i < width; i++) {
-		var magnitude = freqByteData[i];
-		// some values need adjusting to fit on the canvas
-		ctx.fillRect(i, height, 1, -magnitude);
-	}
-
-	ctx.font = "10px Verdana";
-	ctx.fillText("X=" + mouseX + " Y=" + mouseY, 0, 10);
-}
-
-var playSound = function() {
-	soundSource.noteOn(3);
-	noiseSource.noteOn(0);
-	noiseSource.noteOff(soundSource.buffer.duration + 4);
-	oscillators.forEach(function(osc) {
-		osc.noteOn(0);
-		osc.noteOff(soundSource.buffer.duration + 4);
-	});
-
-	setInterval(drawSpectrum, 30);
-};
-
-var loadSound = function(url, callback) {
-  var request = new XMLHttpRequest();
-  request.open('GET', url, true);
-  request.responseType = 'arraybuffer';
-
-  // Decode asynchronously
-  request.onload = function() {
-    context.decodeAudioData(request.response, callback);
-  }
-  request.send();
-};
-
-loadSound('atlys.mp3', function (buffer) {
-  soundSource.buffer = buffer;
-});
-
-loadSound('noise.mp3', function (buffer) {
-  noiseSource.buffer = buffer;
-});
-
-window.addEventListener('load', function(e) {
-	document.querySelector('#play-button').addEventListener('click', playSound, false);
-
-	document.querySelector('canvas').addEventListener('mousemove', function(e) {
-		mouseX = e.pageX - this.offsetLeft;
-		mouseY = e.pageY - this.offsetTop;
-	}, false);
-}, false);
-</script>
-
-<div id="play-button" style="background: #ddd; padding: 5px; border: 1px solid #aaa;">Play</div>
-
-<canvas width="600" height="300"></canvas>
+<canvas width="700" height="500"></canvas>
 
 </body>
 </html>
