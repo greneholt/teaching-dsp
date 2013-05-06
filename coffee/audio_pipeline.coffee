@@ -19,7 +19,8 @@ class MultiStageFilter
       last = filter
       @filters.push filter
 
-    this.connect @from, @to
+    this.connectFrom @from if @from?
+    this.connectTo @to if @to?
 
   disconnect: ->
     @from.disconnect 0 if @from?
@@ -124,7 +125,10 @@ class MultiNotchFilter
 
 class root.AudioPipeline
   constructor: (@context, @noiseBuffer) ->
+    @playing = false
+
     @voiceVolume = @context.createGainNode()
+    @voiceVolume.gain.value = 2
 
     @voiceFilter = new MultiStageFilter @context
     @voiceFilter.connectFrom @voiceVolume
@@ -138,6 +142,7 @@ class root.AudioPipeline
 
     @noiseFilter.connectTo @preAnalyser
 
+    @tones = []
     @oscillators = []
 
     @bandPass = new MultiStageFilter @context
@@ -147,35 +152,73 @@ class root.AudioPipeline
 
     @bandPass.connectTo @volume
 
-    @toneFilters = new MultiNotchFilter @context
-    @toneFilters.connectFrom @volume
+    @toneFilter = new MultiNotchFilter @context
+    @toneFilter.connectFrom @volume
 
     @postAnalyser = @context.createAnalyser()
     @postAnalyser.smoothingTimeConstant.value = 100
 
-    @toneFilters.connectTo @postAnalyser
+    @toneFilter.connectTo @postAnalyser
 
     @postAnalyser.connect @context.destination
 
-  setInterference: (voiceF, voiceQ, tones) ->
-    for osc in @oscillators
-      osc.disconnect 0
-
-    @oscillators = for freq in tones
-      osc = @context.createOscillator()
-      osc.frequency.value = freq
-      osc.connect destination
-      osc
-
+  setInterference: (voiceF, voiceQ, @tones) ->
     @voiceFilter.set 2, 8, voiceF, voiceQ
 
     @noiseFilter.set 6, 8, voiceF, voiceQ
 
-  play: (voiceBuffer) ->
-    noise = @context.createBufferSource(@noiseBuffer, true)
-    voice = @context.createBufferSource(voiceBuffer, true)
+  play: (voiceBuffer, finished = null) ->
+    this.stop() if @playing
 
-    noise.noteOn 0
-    voice.noteOn 3
+    @playing = true
+    console.log 'audio pipeline playing'
 
-    noise.noteOff 3 + voiceBuffer.length
+    @noiseSource = @context.createBufferSource()
+    @noiseSource.buffer = @noiseBuffer
+    @noiseFilter.connectFrom @noiseSource
+
+    @voiceSource = @context.createBufferSource()
+    @voiceSource.buffer = voiceBuffer
+    @voiceSource.connect @voiceVolume
+
+    now = @context.currentTime
+
+    @noiseSource.noteOn now
+
+    @oscillators = for freq in @tones
+      osc = @context.createOscillator()
+      osc.frequency.value = freq
+      osc.connect @preAnalyser
+      osc.noteOn now
+      osc
+
+    @voiceSource.noteOn now + 2
+
+    setTimeout =>
+      this.stop()
+      finished() if finished?
+    , (2 + voiceBuffer.duration)*1000
+
+  stop: ->
+    return unless @playing
+
+    @playing = false
+    console.log 'audio pipeline stopping'
+
+    now = @context.currentTime
+
+    if @noiseSource?
+      @noiseSource.noteOff now
+      @noiseSource.disconnect 0
+      @noiseSource = null
+
+    if @voiceSource?
+      @voiceSource.noteOff now
+      @voiceSource.disconnect 0
+      @voiceSource = null
+
+    for osc in @oscillators
+      osc.noteOff now
+      osc.disconnect 0
+
+    @oscillators = []
