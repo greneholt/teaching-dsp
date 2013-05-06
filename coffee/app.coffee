@@ -28,11 +28,11 @@ $(document).ready ->
 
   mgr = new CanvasManager(canvas)
 
-  specDisplay = new SpectrumDisplay(25, 0, 700, 200)
+  specDisplay = new SpectrumDisplay(25, 0, 675, 200)
   mgr.add specDisplay
 
-  handle1 = new DragHandle(100, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
-  handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
+  handle1 = new DragHandle(100, 250, 50, 50, "#3EA828", {minX: 0, maxX: 675})
+  handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 675})
 
   bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2)
 
@@ -86,29 +86,32 @@ $(document).ready ->
     playing = false
     intervalId = null
 
-    $('#play-button').click ->
+    $('#play-button').click (e) ->
       if playing
         playing = false
-        $(this).text "Play"
+        $(e.target).text "Play"
         pipeline.stop()
         clearInterval intervalId
       else
         playing = true
-        $(this).text "Stop"
+        $(e.target).text "Stop"
         pipeline.play voiceBuffer
 
         intervalId = setInterval ->
           mgr.render()
         , 30
 
-    $('#show-output-spectrum').change ->
-      if this.checked
+    $('.option').click (e) ->
+      $(e.target).toggleClass 'enabled'
+
+    $('#show-output-spectrum').click (e) ->
+      if $(e.target).is('.enabled')
         specDisplay.analyser = pipeline.postAnalyser
       else
         specDisplay.analyser = pipeline.preAnalyser
 
-    $('#enable-band-pass').change ->
-      if this.checked
+    $('#enable-band-pass').click (e) ->
+      if $(e.target).is('.enabled')
         mgr.add handle1, true
         mgr.add handle2, true
         mgr.add bandPassInd

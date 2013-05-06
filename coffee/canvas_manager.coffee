@@ -67,10 +67,12 @@ class root.CanvasManager
   add: (object, interactive = false) ->
     @renderables.push(object)
     @interactives.push(object) if interactive
+    this.render()
 
   remove: (object) ->
     this.arrayRemove object, @renderables
     this.arrayRemove object, @interactives
+    this.render()
 
   render: ->
     width = @canvas[0].width

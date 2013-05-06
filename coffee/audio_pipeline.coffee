@@ -176,7 +176,6 @@ class root.AudioPipeline
     this.stop() if @playing
 
     @playing = true
-    console.log 'audio pipeline playing'
 
     @noiseSource = @context.createBufferSource()
     @noiseSource.buffer = @noiseBuffer
@@ -205,7 +204,6 @@ class root.AudioPipeline
     return unless @playing
 
     @playing = false
-    console.log 'audio pipeline stopping'
 
     now = @context.currentTime
 
