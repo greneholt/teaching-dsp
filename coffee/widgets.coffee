@@ -14,6 +14,8 @@ class root.DragHandle
     ctx.lineTo @width/2, 0
     ctx.closePath()
     ctx.fill()
+    ctx.strokeStyle = "#333333"
+    ctx.stroke()
     ctx.restore()
 
   grab: (x, y) ->
@@ -37,18 +39,29 @@ class root.DragHandle
     @onMove() if @onMove?
 
 class root.RangeIndicator
-  constructor: (@y, @height, @color, @drag1, @drag2) ->
+  constructor: (@y, @height, @color, @handle1, @handle2) ->
 
   render: (ctx, width, heigh) ->
     ctx.fillStyle = @color
     ctx.globalAlpha = 0.5
-    x1 = @drag1.getMarkerX()
-    x2 = @drag2.getMarkerX()
+    x1 = @handle1.getMarkerX()
+    x2 = @handle2.getMarkerX()
 
     if x1 > x2
       [x1, x2] = [x2, x1]
 
     ctx.fillRect x1, @y, x2 - x1, @height
+    ctx.globalAlpha = 1 # reset alpha
+
+class root.LineIndicator
+  constructor: (@y, @height, @color, @handle) ->
+
+  render: (ctx, width, height) ->
+    ctx.fillStyle = @color
+    ctx.globalAlpha = 0.5
+    x = @handle.getMarkerX()
+
+    ctx.fillRect x - 1, @y, 3, @height
     ctx.globalAlpha = 1 # reset alpha
 
 class root.SpectrumDisplay

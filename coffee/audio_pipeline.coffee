@@ -75,9 +75,10 @@ class MultiNotchFilter
 
     filter.connect @to if @to?
     @filters.push filter
+    return filter
 
-  removeFilter: (i) ->
-    filter = @filters[i]
+  removeFilter: (filter) ->
+    i = @filters.indexOf filter
     filter.disconnect 0
 
     # remove this filter from the chain
@@ -99,9 +100,9 @@ class MultiNotchFilter
     @filters.splice i, 1 # remove filter from array
 
   removeFrequency: (frequency) ->
-    for i, filter in @filters
+    for filter in @filters
       if filter.frequency.value == frequency
-        this.removeFilter i
+        this.removeFilter filter
         return true
     return false
 

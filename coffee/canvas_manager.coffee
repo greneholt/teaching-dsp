@@ -66,7 +66,7 @@ class root.CanvasManager
 
   add: (object, interactive = false) ->
     @renderables.push(object)
-    @interactives.push(object) if interactive
+    @interactives.unshift(object) if interactive # put interactives on the front of the list so higher elements are checked first
     this.render()
 
   remove: (object) ->

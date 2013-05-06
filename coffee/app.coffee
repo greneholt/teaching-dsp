@@ -3,6 +3,7 @@ root = exports ? this
 CanvasManager = root.CanvasManager
 DragHandle = root.DragHandle
 RangeIndicator = root.RangeIndicator
+LineIndicator = root.LineIndicator
 SpectrumDisplay = root.SpectrumDisplay
 
 loadSound = (context, url, callback) ->
@@ -35,6 +36,23 @@ $(document).ready ->
   handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 675})
 
   bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2)
+
+  class NotchFilter
+    constructor: (@filter) ->
+      @handle = new DragHandle(400, 200, 50, 50, "#EB1A1A", {minX: 0, maxX: 675})
+      @indicator = new LineIndicator(0, 200, "#EB1A1A", @handle)
+      @handle.onMove = =>
+        f = specDisplay.convertXtoF @handle.getMarkerX(), context.sampleRate
+        f = Math.round(f/100)*100
+        @filter.frequency.value = f
+
+    addTo: (canvasManager) ->
+      canvasManager.add @handle, true
+      canvasManager.add @indicator
+
+    removeFrom: (canvasManager) ->
+      canvasManager.remove @handle
+      canvasManager.remove @indicator
 
   mgr.render()
 
@@ -83,8 +101,8 @@ $(document).ready ->
       pipeline.bandPass.setFrequency freq
       pipeline.bandPass.setQ Q
 
-    for freq in [900, 1100, 1300, 1500, 1700, 1900]
-      pipeline.toneFilter.addFrequency freq
+    # for freq in [900, 1100, 1300, 1500, 1700, 1900]
+    #   pipeline.toneFilter.addFrequency freq
 
     playing = false
     intervalId = null
@@ -127,3 +145,11 @@ $(document).ready ->
         mgr.remove bandPassInd
         pipeline.bandPass.clear()
         $('#band-pass-info').css 'visibility', 'hidden'
+
+    notchFilters = []
+
+    $('#add-notch-filter').click ->
+      filter = pipeline.toneFilter.addFrequency 500
+      notchFilter = new NotchFilter(filter)
+      notchFilter.addTo mgr
+      notchFilters.push notchFilter
