@@ -31,13 +31,10 @@ $(document).ready ->
   specDisplay = new SpectrumDisplay(25, 0, 700, 200)
   mgr.add specDisplay
 
-  handle1 = new DragHandle(20, 250, 50, 50, "#005500", {minX: 0, maxX: 600})
-  mgr.add handle1, true
-  handle2 = new DragHandle(80, 250, 50, 50, "#005500", {minX: 0, maxX: 600})
-  mgr.add handle2, true
+  handle1 = new DragHandle(0, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
+  handle2 = new DragHandle(400, 250, 50, 50, "#3EA828", {minX: 0, maxX: 600})
 
-  bandPassInd = new RangeIndicator(0, 200, "#005500", handle1, handle2)
-  mgr.add bandPassInd
+  bandPassInd = new RangeIndicator(0, 200, "#3EA828", handle1, handle2)
 
   mgr.render()
 
@@ -56,6 +53,21 @@ $(document).ready ->
     noiseBuffer = buffer
     onLoaded()
 
+  calculateBandPass = ->
+    x1 = handle1.getMarkerX()
+    x2 = handle2.getMarkerX()
+
+    if x1 > x2
+      [x1, x2] = [x2, x1]
+
+    f1 = specDisplay.convertXtoF x1, context.sampleRate
+    f2 = specDisplay.convertXtoF x2, context.sampleRate
+
+    delta = f2 - f1
+    freq = (f1 + f2)/2
+    Q = freq / delta
+    return [freq, Q]
+
   setup = ->
     pipeline = new AudioPipeline(context, noiseBuffer)
 
@@ -63,22 +75,8 @@ $(document).ready ->
 
     pipeline.setInterference 1500, 1, [900, 1100, 1300, 1500, 1700, 1900]
 
-    pipeline.bandPass.set 2, 8, 1500, 1
-
     handle1.onMove = handle2.onMove = ->
-      x1 = handle1.getMarkerX()
-      x2 = handle2.getMarkerX()
-
-      if x1 > x2
-        [x1, x2] = [x2, x1]
-
-      f1 = specDisplay.convertXtoF x1, context.sampleRate
-      f2 = specDisplay.convertXtoF x2, context.sampleRate
-
-      delta = f2 - f1
-      freq = (f1 + f2)/2
-      Q = freq / delta
-
+      [freq, Q] = calculateBandPass()
       pipeline.bandPass.setFrequency freq
       pipeline.bandPass.setQ Q
 
@@ -108,3 +106,16 @@ $(document).ready ->
         specDisplay.analyser = pipeline.postAnalyser
       else
         specDisplay.analyser = pipeline.preAnalyser
+
+    $('#enable-band-pass').change ->
+      if this.checked
+        mgr.add handle1, true
+        mgr.add handle2, true
+        mgr.add bandPassInd
+        [freq, Q] = calculateBandPass()
+        pipeline.bandPass.set 2, 8, freq, Q
+      else
+        mgr.remove handle1
+        mgr.remove handle2
+        mgr.remove bandPassInd
+        pipeline.bandPass.clear()

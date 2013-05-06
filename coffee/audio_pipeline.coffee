@@ -22,6 +22,11 @@ class MultiStageFilter
     this.connectFrom @from if @from?
     this.connectTo @to if @to?
 
+  clear: ->
+    this.disconnect()
+    @filters = []
+    @from.connect @to if @from? and @to?
+
   disconnect: ->
     @from.disconnect 0 if @from?
     @filters[@filters.length - 1].disconnect 0 if @filters.length > 0

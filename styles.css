@@ -4,8 +4,19 @@ body {
 	font: 12px "Lucida Grande", Arial, sans-serif;
 }
 
-#controls {
+@media (min-width: 925px) {
+	canvas {
+		float: left;
+	}
 
+	#controls {
+		margin-left: 725px;
+		width: 200px;
+	}
+}
+
+#controls {
+	padding: 10px;
 }
 
 #play-button {
@@ -14,7 +25,9 @@ body {
 	color: #fff;
 	font-weight: bold;
 	-webkit-border-radius: 5px;
-	display: inline-block;
+	width: 150px;
+	text-align: center;
 	cursor: pointer;
 	border: 1px solid #0044FF;
 }
+

@@ -66,7 +66,7 @@ class root.SpectrumDisplay
 
       ctx.fillStyle = "#47ACF5"
       for i in [0...@width]
-        ctx.fillRect @x + i, @y + @height, 1, -freqByteData[i]
+        ctx.fillRect @x + i, @y + @height, 1, -(freqByteData[i] / 255) * @height
 
   convertXtoF: (x, Fs) ->
     return null unless @analyser?

@@ -11,7 +11,7 @@ class root.CanvasManager
 
     # mouse events are the 0th touch
     @canvas.mousedown (e) =>
-      this.grab 0, e
+      e.preventDefault() if this.grab 0, e
 
     $(window).mouseup (e) =>
       this.release 0, e
@@ -69,8 +69,8 @@ class root.CanvasManager
     @interactives.push(object) if interactive
 
   remove: (object) ->
-    remove object, @renderables
-    remove object, @interactives
+    this.arrayRemove object, @renderables
+    this.arrayRemove object, @interactives
 
   render: ->
     width = @canvas[0].width
@@ -80,7 +80,7 @@ class root.CanvasManager
     for renderable in @renderables
       renderable.render(@ctx, width, height)
 
-  remove: (object, array) ->
+  arrayRemove: (object, array) ->
     index = array.indexOf object
     array.splice index, 1 unless index == -1
 
