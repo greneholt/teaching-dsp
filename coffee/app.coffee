@@ -102,7 +102,7 @@ $(document).ready ->
 
     specDisplay.analyser = pipeline.preAnalyser
 
-    pipeline.setInterference 1500, 1, [900, 1100, 1300, 1500, 1700, 1900]
+    pipeline.setInterference 1500, 0.7, [900, 1100, 1300, 1500, 1700, 1900]
 
     handle1.onMove = handle2.onMove = ->
       [freq, Q] = calculateBandPass()
@@ -130,8 +130,13 @@ $(document).ready ->
     $('.option').click (e) ->
       $(e.target).toggleClass 'enabled'
 
-    $('#volume-slider').change (e) ->
-      pipeline.setVolume Math.pow(10, e.target.value / 100)
+    volumeSlider = $('#volume-slider')
+
+    updateVolume = ->
+      pipeline.setVolume Math.pow(10, volumeSlider.val() / 100)
+
+    volumeSlider.change updateVolume
+    updateVolume() # set initial volume
 
     $('#show-output-spectrum').click (e) ->
       if $(e.target).is('.enabled')
