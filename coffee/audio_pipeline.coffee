@@ -132,7 +132,7 @@ class root.AudioPipeline
   constructor: (@context, @noiseBuffer) ->
     @playing = false
 
-    @voiceVolume = @context.createGainNode()
+    @voiceVolume = @context.createGain()
     @voiceVolume.gain.value = 2
 
     @voiceFilter = new MultiStageFilter @context
@@ -153,7 +153,7 @@ class root.AudioPipeline
     @toneFilter = new MultiNotchFilter @context
     @toneFilter.connectFrom @preAnalyser
 
-    @volume = @context.createGainNode()
+    @volume = @context.createGain()
 
     @toneFilter.connectTo @volume
 
