@@ -20,7 +20,8 @@ loadSound = (context, url, callback) ->
 $(document).ready ->
   window.scrollTo 0, 1
 
-  context = new webkitAudioContext()
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  context = new AudioContext();
 
   voiceBuffer = null
   noiseBuffer = null

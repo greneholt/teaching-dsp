@@ -61,7 +61,7 @@ class MultiNotchFilter
 
   addFilter: ->
     filter = @context.createBiquadFilter()
-    filter.type = 6
+    filter.type = "notch"
     filter.Q.value = 500
 
     if @filters.length > 0
@@ -168,9 +168,9 @@ class root.AudioPipeline
     @postAnalyser.connect @context.destination
 
   setInterference: (voiceF, voiceQ, @tones) ->
-    @voiceFilter.set 2, 8, voiceF, voiceQ
+    @voiceFilter.set "bandpass", 8, voiceF, voiceQ
 
-    @noiseFilter.set 6, 8, voiceF, voiceQ
+    @noiseFilter.set "notch", 8, voiceF, voiceQ
 
   setVolume: (gain) ->
     @volume.gain.value = gain
@@ -192,16 +192,17 @@ class root.AudioPipeline
 
     now = @context.currentTime
 
-    @noiseSource.noteOn now
+    @noiseSource.start now
 
     @oscillators = for freq in @tones
       osc = @context.createOscillator()
       osc.frequency.value = freq
+      osc.type = "sine"
       osc.connect @preAnalyser
-      osc.noteOn now
+      osc.start now
       osc
 
-    @voiceSource.noteOn now + 2
+    @voiceSource.start now + 2
 
   stop: ->
     return unless @playing
@@ -211,17 +212,17 @@ class root.AudioPipeline
     now = @context.currentTime
 
     if @noiseSource?
-      @noiseSource.noteOff now
+      @noiseSource.stop now
       @noiseSource.disconnect 0
       @noiseSource = null
 
     if @voiceSource?
-      @voiceSource.noteOff now
+      @voiceSource.stop now
       @voiceSource.disconnect 0
       @voiceSource = null
 
     for osc in @oscillators
-      osc.noteOff now
+      osc.stop now
       osc.disconnect 0
 
     @oscillators = []
