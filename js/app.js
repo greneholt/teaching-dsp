@@ -29,7 +29,8 @@
   $(document).ready(function() {
     var NotchFilter, bandPassInd, calculateBandPass, canvas, context, handle1, handle2, mgr, noiseBuffer, onLoaded, setup, specDisplay, toLoad, voiceBuffer;
     window.scrollTo(0, 1);
-    context = new webkitAudioContext();
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
     voiceBuffer = null;
     noiseBuffer = null;
     canvas = $('canvas');
@@ -151,8 +152,8 @@
       updateVolume = function() {
         return pipeline.setVolume(Math.pow(10, volumeSlider.val() / 100));
       };
-      updateVolume();
       volumeSlider.change(updateVolume);
+      updateVolume();
       $('#show-output-spectrum').click(function(e) {
         if ($(e.target).is('.enabled')) {
           specDisplay.analyser = pipeline.postAnalyser;

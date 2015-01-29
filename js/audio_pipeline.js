@@ -115,7 +115,7 @@
     MultiNotchFilter.prototype.addFilter = function() {
       var filter;
       filter = this.context.createBiquadFilter();
-      filter.type = 6;
+      filter.type = "notch";
       filter.Q.value = 500;
       if (this.filters.length > 0) {
         this.filters[this.filters.length - 1].disconnect(0);
@@ -224,7 +224,7 @@
       this.context = context;
       this.noiseBuffer = noiseBuffer;
       this.playing = false;
-      this.voiceVolume = this.context.createGainNode();
+      this.voiceVolume = this.context.createGain();
       this.voiceVolume.gain.value = 2;
       this.voiceFilter = new MultiStageFilter(this.context);
       this.voiceFilter.connectFrom(this.voiceVolume);
@@ -237,7 +237,7 @@
       this.oscillators = [];
       this.toneFilter = new MultiNotchFilter(this.context);
       this.toneFilter.connectFrom(this.preAnalyser);
-      this.volume = this.context.createGainNode();
+      this.volume = this.context.createGain();
       this.toneFilter.connectTo(this.volume);
       this.bandPass = new MultiStageFilter(this.context);
       this.bandPass.connectFrom(this.volume);
@@ -249,8 +249,8 @@
 
     AudioPipeline.prototype.setInterference = function(voiceF, voiceQ, tones) {
       this.tones = tones;
-      this.voiceFilter.set(2, 8, voiceF, voiceQ);
-      return this.noiseFilter.set(6, 8, voiceF, voiceQ);
+      this.voiceFilter.set("bandpass", 8, voiceF, voiceQ);
+      return this.noiseFilter.set("notch", 8, voiceF, voiceQ);
     };
 
     AudioPipeline.prototype.setVolume = function(gain) {
@@ -272,7 +272,7 @@
       this.voiceSource.loop = true;
       this.voiceSource.connect(this.voiceVolume);
       now = this.context.currentTime;
-      this.noiseSource.noteOn(now);
+      this.noiseSource.start(now);
       this.oscillators = (function() {
         var _i, _len, _ref, _results;
         _ref = this.tones;
@@ -281,13 +281,14 @@
           freq = _ref[_i];
           osc = this.context.createOscillator();
           osc.frequency.value = freq;
+          osc.type = "sine";
           osc.connect(this.preAnalyser);
-          osc.noteOn(now);
+          osc.start(now);
           _results.push(osc);
         }
         return _results;
       }).call(this);
-      return this.voiceSource.noteOn(now + 2);
+      return this.voiceSource.start(now + 2);
     };
 
     AudioPipeline.prototype.stop = function() {
@@ -298,19 +299,19 @@
       this.playing = false;
       now = this.context.currentTime;
       if (this.noiseSource != null) {
-        this.noiseSource.noteOff(now);
+        this.noiseSource.stop(now);
         this.noiseSource.disconnect(0);
         this.noiseSource = null;
       }
       if (this.voiceSource != null) {
-        this.voiceSource.noteOff(now);
+        this.voiceSource.stop(now);
         this.voiceSource.disconnect(0);
         this.voiceSource = null;
       }
       _ref = this.oscillators;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         osc = _ref[_i];
-        osc.noteOff(now);
+        osc.stop(now);
         osc.disconnect(0);
       }
       return this.oscillators = [];
